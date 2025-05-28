@@ -2,14 +2,16 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Nagarjun Team Leave Plan Tracker</title>
+  <title>Nagarjun Team Leave Tracker</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- FullCalendar CSS -->
   <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <main>
     <h1>Nagarjun Team Availability</h1>
+    <br>
     <div class="calendar-actions">
       <button id="add-leave-btn">➕ Add Leave</button>
       <button id="add-member-btn">👤 Add Teammate</button>
@@ -24,25 +26,34 @@
   <div class="modal-bg" id="modal-bg">
     <div class="modal-content" id="modal-content"></div>
   </div>
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
-  <script>
-    // Paste your firebaseConfig below!
+  <!-- Firebase Modular SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-analytics.js";
+    import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-database.js";
+
     const firebaseConfig = {
-    apiKey: "AIzaSyBJMyiAyU2r-fcsGn5Jfb3IC9eeoSKY-EA",
-    authDomain: "leave-tracker-5d020.firebaseapp.com",
-    databaseURL: "https://leave-tracker-5d020-default-rtdb.firebaseio.com",
-    projectId: "leave-tracker-5d020",
-    storageBucket: "leave-tracker-5d020.firebasestorage.app",
-    messagingSenderId: "1026174761332",
-    appId: "1:1026174761332:web:d82c19460f3283186c1421",
-    measurementId: "G-Q28C56LGLJ"
+      apiKey: "AlzaSyBJMyiAyU2r-fcsGn5Jfb3IC9eeoSKY-EA",
+      authDomain: "leave-tracker-5d020.firebaseapp.com",
+      databaseURL: "https://leave-tracker-5d020-default-rtdb.firebaseio.com",
+      projectId: "leave-tracker-5d020",
+      storageBucket: "leave-tracker-5d020.appspot.com",
+      messagingSenderId: "1026174761332",
+      appId: "1:1026174761332:web:d82c19460f2383186c1421",
+      measurementId: "G-Q28C56LGLJ"
     };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    getAnalytics(app); // Optional
+    const db = getDatabase(app);
+
+    // Expose Firebase DB for script.js
+    window._firebase = { db, ref, onValue, set };
   </script>
+  <!-- FullCalendar JS -->
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+  <!-- Your main script -->
   <script src="script.js"></script>
 </body>
 </html>
