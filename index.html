@@ -11,26 +11,24 @@
 <body>
   <main>
     <h1>Nagarjun Team Availability</h1>
-    <br>
     <div class="calendar-actions">
       <button id="add-leave-btn">➕ Add Leave</button>
       <button id="add-member-btn">👤 Add Teammate</button>
     </div>
-    <div id="member-list-panel"></div>
+    <div id="unity-group-panel"></div>
     <div id="calendar"></div>
     <small>
-      In Nagarjun Team, leave plans are part of our balance — rest, recharge and return ready to achieve more...
+      In Nagarjun Team, leave plans are part of our balance — rest, recharge, and return ready to achieve more...
     </small>
   </main>
   <!-- Modal for adding leave/member -->
   <div class="modal-bg" id="modal-bg">
     <div class="modal-content" id="modal-content"></div>
   </div>
-  <!-- Firebase Compat SDKs (not modules) -->
+  <!-- Firebase Compat SDKs -->
   <script src="https://www.gstatic.com/firebasejs/11.8.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/11.8.1/firebase-database-compat.js"></script>
   <script>
-    // Your Firebase config
     const firebaseConfig = {
       apiKey: "AlzaSyBJMyiAyU2r-fcsGn5Jfb3IC9eeoSKY-EA",
       authDomain: "leave-tracker-5d020.firebaseapp.com",
@@ -42,11 +40,9 @@
       measurementId: "G-Q28C56LGLJ"
     };
     firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
   </script>
   <!-- FullCalendar JS -->
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
-  <!-- Your main script -->
   <script src="script.js"></script>
 </body>
 </html>
