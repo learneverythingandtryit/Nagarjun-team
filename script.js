@@ -1,22 +1,24 @@
-// --- Data persistence ---
-function loadData() {
-  try {
-    return JSON.parse(localStorage.getItem('leave_data')) || { members: [], leaves: [] };
-  } catch {
-    return { members: [], leaves: [] };
-  }
-}
-function saveData(data) {
-  localStorage.setItem('leave_data', JSON.stringify(data));
-}
+// --- Global state ---
+let members = [];
+let leaves = [];
+let nextId = 1;
 
-// Start with empty members/leaves if no data
-if (!localStorage.getItem('leave_data')) {
-  saveData({ members: [], leaves: [] });
-}
+// --- Firebase Realtime Sync ---
 
-let { members, leaves } = loadData();
-let nextId = leaves.length ? Math.max(...leaves.map(l => l.id)) + 1 : 1;
+// Listen for member changes
+db.ref('members').on('value', snapshot => {
+  members = snapshot.val() || [];
+  renderMemberListPanel();
+  renderCalendar();
+});
+
+// Listen for leave changes
+db.ref('leaves').on('value', snapshot => {
+  leaves = snapshot.val() || [];
+  // Recalculate nextId
+  nextId = leaves.length ? Math.max(...leaves.map(l => l.id)) + 1 : 1;
+  renderCalendar();
+});
 
 // --- Member List Panel (no delete symbol as requested) ---
 function renderMemberListPanel() {
@@ -30,7 +32,6 @@ function renderMemberListPanel() {
       <span class="member-chip">${m}</span>
     `).join('');
 }
-renderMemberListPanel();
 
 // --- Calendar ---
 let calendar;
@@ -61,14 +62,15 @@ function renderCalendar() {
   });
   calendar.render();
 }
+
+// --- Delete Leave ---
 window.deleteLeave = function(id) {
   if (confirm("Delete this leave?")) {
     leaves = leaves.filter(l => l.id !== id);
-    saveData({ members, leaves });
-    renderCalendar();
+    db.ref('leaves').set(leaves);
+    // No need to call renderCalendar, listener will update UI
   }
 };
-renderCalendar();
 
 // --- Modal Logic ---
 const modalBg = document.getElementById('modal-bg');
@@ -119,9 +121,9 @@ document.getElementById('add-leave-btn').onclick = function() {
         return;
       }
       leaves.push({ id: nextId++, name, from, to, reason });
-      saveData({ members, leaves });
+      db.ref('leaves').set(leaves);
       hideModal();
-      renderCalendar();
+      // Listener will update UI
     };
     document.getElementById('cancel-btn').onclick = hideModal;
   });
@@ -147,10 +149,9 @@ document.getElementById('add-member-btn').onclick = function() {
         return;
       }
       members.push(name);
-      saveData({ members, leaves });
+      db.ref('members').set(members);
       hideModal();
-      renderMemberListPanel();
-      renderCalendar();
+      // Listener will update UI
     };
     document.getElementById('cancel-btn').onclick = hideModal;
   });
