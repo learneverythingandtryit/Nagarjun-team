@@ -106,12 +106,19 @@ h2 {
 }
 .delete-btn:hover { opacity: 1; }
 .modal-bg {
-  position: fixed; top:0; left:0; width:100vw; height:100vh;
-  background:rgba(30,44,74,0.15); display:flex; align-items:center; justify-content:center;
-  z-index:1000; display: none;
+  position: fixed;
+  top: 0; left: 0; width: 100vw; height: 100vh;
+  background: rgba(30,44,74,0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  display: none;
 }
 .modal-content {
-  background: #fff; padding: 26px 18px 18px 18px; border-radius: 12px;
+  background: #fff;
+  padding: 26px 18px 18px 18px;
+  border-radius: 12px;
   box-shadow: 0 2px 14px rgba(46,82,152,0.07);
   min-width: 270px;
   max-width: 97vw;
@@ -124,24 +131,30 @@ h2 {
   font-size: 0.99em;
   font-weight: 500;
 }
-.modal-content input, .modal-content select {
+.modal-content input,
+.modal-content select {
   width: 94%;
   margin: 7px 0;
   padding: 6px;
   border-radius: 6px;
   border: 1px solid #bbb;
-  font-size:1em;
+  font-size: 1em;
 }
 .modal-content button {
   margin-top: 7px;
   padding: 7px 18px;
-  border:none; border-radius:6px;
+  border: none;
+  border-radius: 6px;
   background: linear-gradient(135deg, #fa71cd 0%, #c471f5 100%);
-  color:#fff; font-weight:600; cursor:pointer;
-  font-size:0.97em;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.97em;
 }
 .modal-content button.cancel-btn {
-  background: #eee; color: #555; margin-left: 7px;
+  background: #eee;
+  color: #555;
+  margin-left: 7px;
 }
 small {
   display: block;
