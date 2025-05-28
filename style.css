@@ -1,22 +1,28 @@
 body {
-  font-family: system-ui, sans-serif;
-  background: #f9f9fc;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  background: #fff;
+  color: #111;
   margin: 0;
   padding: 0;
 }
 main {
   max-width: 600px;
-  margin: 30px auto 0 auto;
-  background: white;
-  border-radius: 10px;
-  box-shadow: 0 2px 18px #0001;
-  padding: 2em 1.5em 1.5em 1.5em;
+  margin: 24px auto 0 auto;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 18px #2222;
+  padding: 2em 1.2em 1.2em 1.2em;
   position: relative;
 }
 h1 {
-  font-size: 1.7em;
+  font-size: 1.3em;
   text-align: center;
-  margin-bottom: 0.8em;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  margin-bottom: 1em;
+  color: #111;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 0.6em;
 }
 .calendar-actions {
   text-align: center;
@@ -26,94 +32,222 @@ button {
   font-size: 1em;
   padding: 6px 13px;
   border-radius: 6px;
-  border: 1px solid #9a9acb;
+  border: 1px solid #222;
   margin: 0 4px;
-  background: #e4e4fb;
+  background: #fff;
+  color: #111;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: background 0.13s, color 0.13s;
 }
 button:hover {
-  background: #d4d4f6;
+  background: #111;
+  color: #fff;
+  border-color: #111;
 }
-#member-list-panel {
+#unity-group-panel {
   text-align: center;
   margin-bottom: 1em;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
-.member-list-label {
+.unity-group-label {
   font-weight: bold;
-  margin-right: 5px;
-}
-.member-chip {
-  background: #e4e4fb;
-  border-radius: 13px;
-  padding: 2px 10px;
-  margin: 0 2px;
   font-size: 1em;
-  display: inline-block;
-  border: 1px solid #aaa2;
+  color: #111;
+  vertical-align: middle;
+  margin-bottom: 8px;
+  display: block;
+}
+.unity-group {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+  margin-left: 0;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-width: 100%;
+}
+.avatar {
+  background: #111;
+  color: #fff;
+  border-radius: 50px;
+  min-width: 24px;
+  min-height: 24px;
+  display: flex;
+  align-items: center;
+  margin: 0 2px;
+  padding: 0 9px 0 4px;
+  box-shadow: 0 1px 6px #2222;
+  position: relative;
+  cursor: default;
+  font-size: 0.86em;
+  max-width: 120px;
+  overflow: hidden;
+}
+.avatar-initials {
+  font-weight: bold;
+  font-size: 0.96em;
+  background: #fff;
+  color: #111;
+  border-radius: 50%;
+  width: 19px;
+  height: 19px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 5px;
+  border: 1.5px solid #222;
+  box-sizing: border-box;
+}
+.avatar-name {
+  font-size: 0.98em;
+  font-weight: 500;
+  color: #fff;
+  padding-right: 2px;
+  user-select: text;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 75px;
+}
+.avatar[title]:hover::after {
+  content: attr(title);
+  position: absolute;
+  left: 0; top: 125%;
+  z-index: 10;
+  background: #222;
+  color: #fff;
+  font-size: 0.83em;
+  min-width: 50px;
+  max-width: 170px;
+  padding: 5px 11px;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px #2224;
+  pointer-events: none;
+  opacity: 0.98;
+  white-space: normal;
+  text-align: left;
 }
 #calendar {
-  margin-top: 1.5em;
-  background: #f7f7fc;
-  border-radius: 10px;
-  padding: 15px;
+  margin-top: 1.2em;
+  background: #fff;
+  border-radius: 8px;
+  padding: 7px;
+  box-shadow: 0 1px 8px #2221;
 }
-
-.delete-btn {
-  margin-left: 10px;
-  background: #ffb0b0;
-  color: #581a1a;
-  border: 1px solid #d66;
-  border-radius: 5px;
-  font-size: 0.8em;
+.fc .fc-toolbar-title {
+  color: #111;
+  font-weight: 600;
+  font-size: 1.1em;
+}
+.fc .fc-daygrid-day-number {
+  color: #111;
+}
+.event-chip {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 13px;
+  padding: 1px 7px 1px 7px;
+  background: #111;
+  color: #fff;
+  font-size: 0.93em;
+  position: relative;
+  max-width: 125px;
   cursor: pointer;
-  padding: 2px 7px;
 }
-.delete-btn:hover {
-  background: #ff8080;
+.event-chip .event-title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-right: 5px;
+  font-weight: 600;
+  max-width: 65px;
+  display: inline-block;
 }
-
+.event-chip .delete-btn {
+  margin-left: 2px;
+  background: #fff;
+  color: #111;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.82em;
+  cursor: pointer;
+  padding: 0 5px;
+  line-height: 1.1;
+  font-weight: bold;
+  transition: background 0.13s, color 0.13s;
+}
+.event-chip .delete-btn:hover {
+  background: #111;
+  color: #fff;
+  border: 1px solid #fff;
+}
+.event-chip[data-tooltip]:hover:after {
+  content: attr(data-tooltip);
+  white-space: pre-line;
+  position: absolute;
+  left: 0; top: 115%;
+  z-index: 11;
+  background: #222;
+  color: #fff;
+  font-size: 0.82em;
+  min-width: 60px;
+  max-width: 150px;
+  padding: 6px 9px;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px #2225;
+  pointer-events: none;
+  opacity: 0.98;
+}
 .modal-bg {
   display: none;
   position: fixed;
   left: 0; top: 0; width: 100vw; height: 100vh;
-  background: #2226;
+  background: #1117;
   z-index: 1000;
   justify-content: center;
   align-items: center;
 }
 .modal-content {
-  background: white;
-  border-radius: 12px;
-  padding: 1.2em 2em 1.5em 2em;
-  min-width: 270px;
-  box-shadow: 0 4px 30px #0002;
+  background: #fff;
+  border-radius: 10px;
+  padding: 1.2em 2em 1.2em 2em;
+  min-width: 230px;
+  box-shadow: 0 4px 30px #1113;
   position: relative;
+  font-size: 0.98em;
 }
 .cancel-btn {
   margin-left: 10px;
   background: #eee;
-  color: #444;
+  color: #111;
   border: 1px solid #bbb;
 }
 label {
   display: block;
   margin-top: 0.7em;
-  font-size: 1em;
+  font-size: 0.97em;
 }
 input, select {
-  font-size: 1em;
-  margin-top: 0.25em;
-  margin-bottom: 0.6em;
+  font-size: 0.96em;
+  margin-top: 0.18em;
+  margin-bottom: 0.44em;
   border-radius: 6px;
   border: 1px solid #aaa;
   padding: 4px 8px;
   width: 98%;
+  color: #111;
+  background: #fff;
+}
+input:focus, select:focus {
+  outline: 2px solid #111;
 }
 small {
   display: block;
   margin-top: 2em;
-  color: #5b5779;
+  color: #222;
   text-align: center;
-  font-size: 0.95em;
+  font-size: 0.93em;
+  letter-spacing: 0.01em;
 }
