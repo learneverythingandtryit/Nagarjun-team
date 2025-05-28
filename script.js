@@ -1,26 +1,25 @@
-// --- Global state ---
+// Use modular Firebase via window._firebase from index.html
+const { db, ref, onValue, set } = window._firebase;
+
 let members = [];
 let leaves = [];
 let nextId = 1;
 
 // --- Firebase Realtime Sync ---
 
-// Listen for member changes
-db.ref('members').on('value', snapshot => {
+onValue(ref(db, 'members'), snapshot => {
   members = snapshot.val() || [];
   renderMemberListPanel();
   renderCalendar();
 });
 
-// Listen for leave changes
-db.ref('leaves').on('value', snapshot => {
+onValue(ref(db, 'leaves'), snapshot => {
   leaves = snapshot.val() || [];
-  // Recalculate nextId
   nextId = leaves.length ? Math.max(...leaves.map(l => l.id)) + 1 : 1;
   renderCalendar();
 });
 
-// --- Member List Panel (no delete symbol as requested) ---
+// --- Member List Panel ---
 function renderMemberListPanel() {
   const panel = document.getElementById('member-list-panel');
   if (!members.length) {
@@ -28,9 +27,7 @@ function renderMemberListPanel() {
     return;
   }
   panel.innerHTML = `<span class="member-list-label">Teammates:</span> ` +
-    members.map((m) => `
-      <span class="member-chip">${m}</span>
-    `).join('');
+    members.map((m) => `<span class="member-chip">${m}</span>`).join('');
 }
 
 // --- Calendar ---
@@ -46,7 +43,7 @@ function renderCalendar() {
       id: String(l.id),
       title: l.name + ": " + l.reason,
       start: l.from,
-      end: new Date(new Date(l.to).setDate(new Date(l.to).getDate() + 1))
+      end: (new Date(new Date(l.to).setDate(new Date(l.to).getDate() + 1)), l.to),
       color: stringToColor(l.name),
       extendedProps: l
     })),
@@ -67,8 +64,7 @@ function renderCalendar() {
 window.deleteLeave = function(id) {
   if (confirm("Delete this leave?")) {
     leaves = leaves.filter(l => l.id !== id);
-    db.ref('leaves').set(leaves);
-    // No need to call renderCalendar, listener will update UI
+    set(ref(db, 'leaves'), leaves);
   }
 };
 
@@ -121,9 +117,8 @@ document.getElementById('add-leave-btn').onclick = function() {
         return;
       }
       leaves.push({ id: nextId++, name, from, to, reason });
-      db.ref('leaves').set(leaves);
+      set(ref(db, 'leaves'), leaves);
       hideModal();
-      // Listener will update UI
     };
     document.getElementById('cancel-btn').onclick = hideModal;
   });
@@ -149,9 +144,8 @@ document.getElementById('add-member-btn').onclick = function() {
         return;
       }
       members.push(name);
-      db.ref('members').set(members);
+      set(ref(db, 'members'), members);
       hideModal();
-      // Listener will update UI
     };
     document.getElementById('cancel-btn').onclick = hideModal;
   });
