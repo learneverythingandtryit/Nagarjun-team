@@ -10,7 +10,6 @@
 <body>
   <main>
     <h1>Nagarjun Team Availability</h1>
-    <br>
     <div class="calendar-actions">
       <button id="add-leave-btn">➕ Add Leave</button>
       <button id="add-member-btn">👤 Add Teammate</button>
@@ -25,6 +24,23 @@
   <div class="modal-bg" id="modal-bg">
     <div class="modal-content" id="modal-content"></div>
   </div>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+  <script>
+    // Paste your firebaseConfig below!
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_AUTH_DOMAIN",
+      databaseURL: "YOUR_DB_URL",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_STORAGE_BUCKET",
+      messagingSenderId: "YOUR_MSG_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+  </script>
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
   <script src="script.js"></script>
 </body>
