@@ -6,7 +6,7 @@ let nextId = 1;
 
 firebase.database().ref('members').on('value', snapshot => {
   members = snapshot.val() || [];
-  renderMemberListPanel();
+  renderUnityGroupPanel();
   renderCalendar();
 });
 
@@ -16,15 +16,26 @@ firebase.database().ref('leaves').on('value', snapshot => {
   renderCalendar();
 });
 
-// --- Member List Panel ---
-function renderMemberListPanel() {
-  const panel = document.getElementById('member-list-panel');
+// --- Teammate Unity Group Panel ---
+function renderUnityGroupPanel() {
+  const panel = document.getElementById('unity-group-panel');
   if (!members.length) {
-    panel.innerHTML = `<span class="member-list-label">No teammates yet. Click "Add Teammate".</span>`;
+    panel.innerHTML = `<span class="unity-group-label">No teammates yet. Click "Add Teammate".</span>`;
     return;
   }
-  panel.innerHTML = `<span class="member-list-label">Teammates:</span> ` +
-    members.map((m) => `<span class="member-chip">${m}</span>`).join('');
+  panel.innerHTML =
+    `<span class="unity-group-label">Teammates:</span>` +
+    `<div class="unity-group">` +
+    members.map(fullname => {
+      const initial = fullname.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+      return `
+        <div class="avatar" title="${fullname}">
+          <span class="avatar-initials">${initial}</span>
+          <span class="avatar-name" title="${fullname}">${fullname}</span>
+        </div>
+      `;
+    }).join('') +
+    `</div>`;
 }
 
 // --- Calendar ---
@@ -38,18 +49,21 @@ function renderCalendar() {
     headerToolbar: { left: 'prev,next today', center: 'title', right: '' },
     events: leaves.map(l => ({
       id: String(l.id),
-      title: l.name + ": " + l.reason,
+      title: l.name,
       start: l.from,
       end: (new Date(new Date(l.to).setDate(new Date(l.to).getDate() + 1)), l.to),
-      color: stringToColor(l.name),
+      color: "#222",
+      textColor: "#fff",
       extendedProps: l
     })),
     eventContent: function(arg) {
-      let leave = arg.event.extendedProps;
+      const leave = arg.event.extendedProps;
       let el = document.createElement('span');
+      el.className = "event-chip";
+      el.setAttribute("data-tooltip", leave.reason);
       el.innerHTML = `
-        ${arg.event.title}
-        <button class="delete-btn" onclick="deleteLeave(${leave.id})">x</button>
+        <span class="event-title">${arg.event.title}</span>
+        <button class="delete-btn" onclick="deleteLeave(${leave.id})" title="Delete">×</button>
       `;
       return { domNodes: [el] };
     }
@@ -126,8 +140,8 @@ document.getElementById('add-member-btn').onclick = function() {
   showModal(`
     <h3>Add Teammate</h3>
     <form id="member-form" autocomplete="off">
-      <label for="member-in">Name</label>
-      <input id="member-in" type="text" required placeholder="Enter teammate name"><br>
+      <label for="member-in">Full Name</label>
+      <input id="member-in" type="text" required placeholder="Enter full name"><br>
       <button type="submit">Add</button>
       <button class="cancel-btn" type="button" id="cancel-btn">Cancel</button>
     </form>
@@ -147,13 +161,3 @@ document.getElementById('add-member-btn').onclick = function() {
     document.getElementById('cancel-btn').onclick = hideModal;
   });
 };
-
-// --- Utility: String to pretty color ---
-function stringToColor(str) {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
-  let color = '#';
-  for (let i = 0; i < 3; i++)
-    color += ('00' + ((hash >> (i * 8)) & 0xFF).toString(16)).slice(-2);
-  return color;
-}
