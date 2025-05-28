@@ -1,14 +1,17 @@
 // --- Data persistence ---
 function loadData() {
-  try { return JSON.parse(localStorage.getItem('leave_data')) || {}; }
-  catch { return {}; }
+  try {
+    return JSON.parse(localStorage.getItem('leave_data')) || { members: [], leaves: [] };
+  } catch {
+    return { members: [], leaves: [] };
+  }
 }
 function saveData(data) {
   localStorage.setItem('leave_data', JSON.stringify(data));
 }
 
 // Start with empty members/leaves if no data
-if(!localStorage.getItem('leave_data')) {
+if (!localStorage.getItem('leave_data')) {
   saveData({ members: [], leaves: [] });
 }
 
@@ -18,7 +21,7 @@ let nextId = leaves.length ? Math.max(...leaves.map(l => l.id)) + 1 : 1;
 // --- Member List Panel (no delete symbol as requested) ---
 function renderMemberListPanel() {
   const panel = document.getElementById('member-list-panel');
-  if(!members.length) {
+  if (!members.length) {
     panel.innerHTML = `<span class="member-list-label">No teammates yet. Click "Add Teammate".</span>`;
     return;
   }
@@ -33,7 +36,7 @@ renderMemberListPanel();
 let calendar;
 function renderCalendar() {
   const calendarEl = document.getElementById('calendar');
-  if(calendar) calendar.destroy();
+  if (calendar) calendar.destroy();
   calendar = new FullCalendar.Calendar(calendarEl, {
     initialView: 'dayGridMonth',
     height: 470,
@@ -42,7 +45,7 @@ function renderCalendar() {
       id: String(l.id),
       title: l.name + ": " + l.reason,
       start: l.from,
-      end: (new Date(new Date(l.to).setDate(new Date(l.to).getDate()+1)), l.to),
+      end: (new Date(new Date(l.to).setDate(new Date(l.to).getDate() + 1)), l.to),
       color: stringToColor(l.name),
       extendedProps: l
     })),
@@ -59,9 +62,9 @@ function renderCalendar() {
   calendar.render();
 }
 window.deleteLeave = function(id) {
-  if(confirm("Delete this leave?")) {
+  if (confirm("Delete this leave?")) {
     leaves = leaves.filter(l => l.id !== id);
-    saveData({members, leaves});
+    saveData({ members, leaves });
     renderCalendar();
   }
 };
@@ -73,18 +76,18 @@ const modalContent = document.getElementById('modal-content');
 function showModal(html, onShow) {
   modalContent.innerHTML = html;
   modalBg.style.display = 'flex';
-  if(onShow) onShow();
+  if (onShow) onShow();
 }
 function hideModal() {
   modalBg.style.display = 'none';
 }
 modalBg.onclick = function(e) {
-  if(e.target === modalBg) hideModal();
+  if (e.target === modalBg) hideModal();
 };
 
 // --- Add Leave Modal ---
 document.getElementById('add-leave-btn').onclick = function() {
-  if(members.length === 0) {
+  if (members.length === 0) {
     alert("Please add at least one teammate first.");
     return;
   }
@@ -111,12 +114,12 @@ document.getElementById('add-leave-btn').onclick = function() {
       const from = document.getElementById('from-in').value;
       const to = document.getElementById('to-in').value;
       const reason = document.getElementById('reason-in').value.trim();
-      if(!name || !from || !to || !reason) {
+      if (!name || !from || !to || !reason) {
         alert("Please fill all fields.");
         return;
       }
       leaves.push({ id: nextId++, name, from, to, reason });
-      saveData({members, leaves});
+      saveData({ members, leaves });
       hideModal();
       renderCalendar();
     };
@@ -138,13 +141,13 @@ document.getElementById('add-member-btn').onclick = function() {
     document.getElementById('member-form').onsubmit = function(e) {
       e.preventDefault();
       const name = document.getElementById('member-in').value.trim();
-      if(!name) return;
-      if(members.includes(name)) {
+      if (!name) return;
+      if (members.includes(name)) {
         alert("Teammate already exists.");
         return;
       }
       members.push(name);
-      saveData({members, leaves});
+      saveData({ members, leaves });
       hideModal();
       renderMemberListPanel();
       renderCalendar();
@@ -156,9 +159,9 @@ document.getElementById('add-member-btn').onclick = function() {
 // --- Utility: String to pretty color ---
 function stringToColor(str) {
   let hash = 0;
-  for(let i=0; i<str.length; i++) hash = str.charCodeAt(i) + ((hash<<5)-hash);
+  for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
   let color = '#';
-  for(let i=0; i<3; i++)
-    color += ('00'+((hash>>(i*8))&0xFF).toString(16)).slice(-2);
+  for (let i = 0; i < 3; i++)
+    color += ('00' + ((hash >> (i * 8)) & 0xFF).toString(16)).slice(-2);
   return color;
 }
