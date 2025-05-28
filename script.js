@@ -46,7 +46,7 @@ function renderCalendar() {
       id: String(l.id),
       title: l.name + ": " + l.reason,
       start: l.from,
-      end: (new Date(new Date(l.to).setDate(new Date(l.to).getDate() + 1)), l.to),
+      end: new Date(new Date(l.to).setDate(new Date(l.to).getDate() + 1))
       color: stringToColor(l.name),
       extendedProps: l
     })),
