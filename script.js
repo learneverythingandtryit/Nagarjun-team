@@ -1,19 +1,16 @@
-// Use modular Firebase via window._firebase from index.html
-const { db, ref, onValue, set } = window._firebase;
-
 let members = [];
 let leaves = [];
 let nextId = 1;
 
 // --- Firebase Realtime Sync ---
 
-onValue(ref(db, 'members'), snapshot => {
+firebase.database().ref('members').on('value', snapshot => {
   members = snapshot.val() || [];
   renderMemberListPanel();
   renderCalendar();
 });
 
-onValue(ref(db, 'leaves'), snapshot => {
+firebase.database().ref('leaves').on('value', snapshot => {
   leaves = snapshot.val() || [];
   nextId = leaves.length ? Math.max(...leaves.map(l => l.id)) + 1 : 1;
   renderCalendar();
@@ -64,7 +61,7 @@ function renderCalendar() {
 window.deleteLeave = function(id) {
   if (confirm("Delete this leave?")) {
     leaves = leaves.filter(l => l.id !== id);
-    set(ref(db, 'leaves'), leaves);
+    firebase.database().ref('leaves').set(leaves);
   }
 };
 
@@ -117,7 +114,7 @@ document.getElementById('add-leave-btn').onclick = function() {
         return;
       }
       leaves.push({ id: nextId++, name, from, to, reason });
-      set(ref(db, 'leaves'), leaves);
+      firebase.database().ref('leaves').set(leaves);
       hideModal();
     };
     document.getElementById('cancel-btn').onclick = hideModal;
@@ -144,7 +141,7 @@ document.getElementById('add-member-btn').onclick = function() {
         return;
       }
       members.push(name);
-      set(ref(db, 'members'), members);
+      firebase.database().ref('members').set(members);
       hideModal();
     };
     document.getElementById('cancel-btn').onclick = hideModal;
