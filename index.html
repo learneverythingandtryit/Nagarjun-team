@@ -2,30 +2,78 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Nagarjun Team Leave Tracker</title>
+  <title>Team Portal</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <!-- FullCalendar CSS -->
   <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <main>
-    <h1>Nagarjun Team Availability</h1>
-    <div class="calendar-actions">
-      <button id="add-leave-btn">🗓️ Add Leave</button>
-      <button id="add-member-btn">🥷🏻 Add Teammate</button>
-    </div>
-    <div id="unity-group-panel"></div>
-    <div id="calendar"></div>
-    <small>
-      In Nagarjun Team, leave plans are part of our balance — rest, recharge and return ready to achieve more...😎
-    </small>
+    <nav class="main-tabs">
+      <button class="tab-btn active" data-tab="home-tab">Home</button>
+      <button class="tab-btn" data-tab="calendar-tab">Team Availability</button>
+      <button class="tab-btn" data-tab="admin-tab">Admin</button>
+    </nav>
+    <section id="home-tab" class="tab-content active">
+      <h1>Work in progress....</h1>
+    </section>
+    <section id="calendar-tab" class="tab-content">
+      <h1>Leave Planner</h1>
+      <div class="calendar-actions">
+        <button id="add-leave-btn">➕ Add Leave</button>
+        <button id="add-member-btn">👤 Add Teammate</button>
+      </div>
+      <div id="unity-group-panel"></div>
+      <div id="calendar"></div>
+      <small>
+        In Nagarjun Team, leave plans are part of our balance — rest, recharge and return ready to achieve more...
+      </small>
+    </section>
+    <section id="admin-tab" class="tab-content">
+      <h1>Admin Panel</h1>
+      <div id="admin-login-panel">
+        <input type="password" id="admin-password" placeholder="Enter admin password">
+        <button id="admin-login-btn">Login</button>
+      </div>
+      <div id="admin-panel" style="display:none;">
+        <h2>Edit Hari Bot Replies</h2>
+        <button id="add-reply-btn">Add New Reply</button>
+        <button id="export-replies-btn">Export Replies (Excel)</button>
+        <input type="file" id="import-replies-input" accept=".json,.csv,.xlsx" style="display:none;">
+        <button id="import-replies-btn">Import Replies</button>
+        <div id="admin-replies-table"></div>
+        <hr>
+        <h2>Audit Log <button id="clear-auditlog-btn" style="float:right;font-size:0.9em;">Clear</button></h2>
+        <div id="audit-log-table"></div>
+        <small>All actions (add, delete, edit) are tracked here with timestamps.</small>
+        <hr>
+        <h2>Chat Log <button id="clear-chatlog-btn" style="float:right;font-size:0.9em;">Clear</button></h2>
+        <button id="download-chatlog-btn">Download Chat Log (CSV)</button>
+        <div id="admin-chatlog-table"></div>
+      </div>
+    </section>
   </main>
-  <!-- Modal for adding leave/member -->
   <div class="modal-bg" id="modal-bg">
     <div class="modal-content" id="modal-content"></div>
   </div>
-  <!-- Firebase Compat SDKs -->
+  <!-- Hari Chat Bot -->
+  <div id="hari-bot-widget">
+    <div id="hari-icon" aria-label="hari-ninja" tabindex="0">🥷🏻</div>
+    <div id="hari-chatbox" class="hidden">
+      <div class="hari-chat-header">
+        <div class="hari-header-profile">
+          <span class="hari-header-ninja">🥷🏻</span>
+          <span class="hari-header-title">Hari</span>
+        </div>
+        <button id="hari-close-btn" title="Close">×</button>
+      </div>
+      <div id="hari-chat-messages"></div>
+      <form id="hari-chat-form" autocomplete="off">
+        <input type="text" id="hari-chat-input" placeholder="Ask your question..." />
+        <button type="submit">Ask</button>
+      </form>
+    </div>
+  </div>
   <script src="https://www.gstatic.com/firebasejs/11.8.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/11.8.1/firebase-database-compat.js"></script>
   <script>
@@ -41,8 +89,8 @@
     };
     firebase.initializeApp(firebaseConfig);
   </script>
-  <!-- FullCalendar JS -->
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
