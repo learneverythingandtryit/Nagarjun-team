@@ -12,10 +12,12 @@
     <nav class="main-tabs">
       <button class="tab-btn active" data-tab="home-tab">Home</button>
       <button class="tab-btn" data-tab="calendar-tab">Team Availability</button>
+      <button class="tab-btn" data-tab="shift-tab">Shift Management</button>
       <button class="tab-btn" data-tab="admin-tab">Admin</button>
     </nav>
     <section id="home-tab" class="tab-content active">
-      <h1>Work in progress....</h1>
+      <h1>Welcome to Team Portal</h1>
+      <p>Work in progress....</p>
     </section>
     <section id="calendar-tab" class="tab-content">
       <h1>Leave Planner</h1>
@@ -25,9 +27,25 @@
       </div>
       <div id="unity-group-panel"></div>
       <div id="calendar"></div>
-      <small>
-        In Nagarjun Team, leave plans are part of our balance — rest, recharge and return ready to achieve more...
-      </small>
+      <small>In Nagarjun Team, leave plans are part of our balance — rest, recharge and return ready to achieve more...</small>
+    </section>
+    <section id="shift-tab" class="tab-content">
+      <h1>Shift Management</h1>
+      <div class="shift-filters">
+        <label for="shift-app-filter"><b>Application:</b></label>
+        <select id="shift-app-filter">
+          <option value="All">All</option>
+          <option value="RegOne">RegOne</option>
+          <option value="Claims">Claims</option>
+          <option value="mSafety">mSafety</option>
+        </select>
+      </div>
+      <div class="shift-month-actions">
+        <label for="shift-month-select"><b>Month:</b></label>
+        <input type="month" id="shift-month-select" />
+      </div>
+      <div id="shift-display-panel"></div>
+      <small>WFH = 🏠, WFO = 🏢</small>
     </section>
     <section id="admin-tab" class="tab-content">
       <h1>Admin Panel</h1>
@@ -36,6 +54,14 @@
         <button id="admin-login-btn">Login</button>
       </div>
       <div id="admin-panel" style="display:none;">
+        <h2>Assign & Edit Shifts</h2>
+        <div class="shift-month-actions">
+          <label for="admin-shift-month-select"><b>Month:</b></label>
+          <input type="month" id="admin-shift-month-select" />
+        </div>
+        <div id="admin-shift-assign-panel"></div>
+        <button id="admin-shift-save-btn" class="shift-save-btn" style="margin:20px auto 0 auto;display:block;">Save</button>
+        <hr>
         <h2>Edit Hari Bot Replies</h2>
         <button id="add-reply-btn">Add New Reply</button>
         <button id="export-replies-btn">Export Replies (Excel)</button>
@@ -56,7 +82,7 @@
   <div class="modal-bg" id="modal-bg">
     <div class="modal-content" id="modal-content"></div>
   </div>
-  <!-- Hari Chat Bot -->
+  <!-- Hari Chat Bot Widget (now only on Home tab) -->
   <div id="hari-bot-widget">
     <div id="hari-icon" aria-label="hari-ninja" tabindex="0">🥷🏻</div>
     <div id="hari-chatbox" class="hidden">
