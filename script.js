@@ -1,27 +1,74 @@
-const ADMIN_PASSWORD = "admin123"; // Change to your own password
+const ADMIN_PASSWORD = "admin123"; // Change this in production
 
+const SHIFT_TYPES = [
+  {
+    key: "Morning Shift3",
+    label: "Morning Shift3",
+    timing: "6:00 AM – 3:30 PM IST",
+    emoji: "🌅",
+    order: 1
+  },
+  {
+    key: "Regular Shift (WFO)",
+    label: "Regular Shift (WFO)",
+    timing: "8:30 AM – 6:00 PM IST",
+    emoji: "☀️",
+    order: 2
+  },
+  {
+    key: "Evening Shift2",
+    label: "Evening Shift2",
+    timing: "2:30 PM – 12:00 AM IST",
+    order: 3
+  },
+  {
+    key: "Evening Shift3",
+    label: "Evening Shift3",
+    timing: "3:30 PM – 1:00 AM IST",
+    emoji: "🌃",
+    order: 4
+  }
+];
+
+const APPLICATIONS = [
+  "RegOne",
+  "Claims",
+  "mSafety"
+];
+
+// --- State ---
 let members = [];
 let leaves = [];
 let nextId = 1;
 let auditLog = [];
-let hariReplies = {}; // {keyword: reply}
+let hariReplies = {};
 let hariChatLog = [];
+let shifts = {};
 
-// --- Tab logic ---
-document.querySelectorAll('.tab-btn').forEach(btn => {
-  btn.onclick = function() {
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    this.classList.add('active');
-    document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-    document.getElementById(this.dataset.tab).classList.add('active');
-  };
+// --- Tab Navigation & Bot Widget ---
+function handleTabSwitch() {
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.onclick = function () {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+      document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+      document.getElementById(this.dataset.tab).classList.add('active');
+      document.getElementById('hari-bot-widget').style.display = (this.dataset.tab === "home-tab" ? "block" : "none");
+    };
+  });
+}
+handleTabSwitch();
+window.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('hari-bot-widget').style.display = "block";
 });
 
-// --- Firebase Realtime Sync (with audit log robust) ---
+// --- Firebase Sync ---
 firebase.database().ref('members').on('value', snapshot => {
   members = snapshot.val() || [];
   renderUnityGroupPanel();
   renderCalendar();
+  renderShiftDisplay();
+  renderAdminShiftAssignPanel();
 });
 firebase.database().ref('leaves').on('value', snapshot => {
   leaves = snapshot.val() || [];
@@ -39,33 +86,38 @@ firebase.database().ref('hariReplies').on('value', snapshot => {
 firebase.database().ref('hariChatLog').on('value', snapshot => {
   hariChatLog = [];
   if (snapshot.exists()) {
-    snapshot.forEach(s => hariChatLog.push(s.val()));
+    snapshot.forEach(snap => {
+      let arr = snap.val();
+      if (Array.isArray(arr)) arr.forEach(msg => hariChatLog.push(msg));
+      else hariChatLog.push(arr);
+    });
   }
   renderAdminChatLogTable();
 });
+firebase.database().ref('shifts').on('value', snapshot => {
+  shifts = snapshot.val() || {};
+  renderShiftDisplay();
+  renderAdminShiftAssignPanel();
+});
 
-// --- Safe update to avoid overwrite ---
+// --- Utility ---
 function safeSet(refKey, val, actionType, actionDetail) {
-  firebase.database().ref(refKey).transaction(() => val)
-    .then(() => {
-      logAudit(actionType, actionDetail);
-    });
+  firebase.database().ref(refKey).set(val).then(() => logAudit(actionType, actionDetail));
 }
-
-// --- Audit Log ---
 function logAudit(action, detail) {
   const now = new Date();
-  const entry = {
-    action,
-    detail,
-    time: now.toISOString()
-  };
+  const entry = { action, detail, time: now.toISOString() };
   firebase.database().ref('audit').transaction(logs => {
     if (!logs) logs = [];
     logs.push(entry);
     return logs;
   });
 }
+function getInitials(name) {
+  return name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+}
+
+// --- Audit Log ---
 function renderAuditLog() {
   const container = document.getElementById('audit-log-table');
   if (!auditLog.length) {
@@ -82,8 +134,6 @@ function renderAuditLog() {
     </tr>`).join("")}
     </tbody></table>`;
 }
-
-// --- Clear Audit Log ---
 document.addEventListener('DOMContentLoaded', () => {
   const clearAuditBtn = document.getElementById('clear-auditlog-btn');
   if (clearAuditBtn) {
@@ -116,7 +166,7 @@ function renderUnityGroupPanel() {
     `<span class="unity-group-label">Teammates:</span>` +
     `<div class="unity-group">` +
     members.map(fullname => {
-      let init = fullname.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+      let init = getInitials(fullname);
       let isLong = init.length > 1 ? 'data-long="true"' : '';
       return `
         <div class="avatar" title="${fullname}">
@@ -127,21 +177,22 @@ function renderUnityGroupPanel() {
     }).join('') +
     `</div>`;
 }
+
+// --- Calendar/Leave ---
+let calendar;
 function addOneDay(dateStr) {
-  // dateStr in "YYYY-MM-DD"
   const d = new Date(dateStr);
   d.setDate(d.getDate() + 1);
-  return d.toISOString().slice(0,10);
+  return d.toISOString().slice(0, 10);
 }
-// --- Calendar ---
-let calendar;
 function renderCalendar() {
   const calendarEl = document.getElementById('calendar');
+  if (!calendarEl) return;
   if (calendar) calendar.destroy();
   calendar = new FullCalendar.Calendar(calendarEl, {
     initialView: 'dayGridMonth',
-    height: 470,
-    dayMaxEventRows: 4,
+    height: 'auto', // or 400
+    dayMaxEventRows: 5,
     eventMaxStack: 1,
     headerToolbar: { left: 'prev,next today', center: 'title', right: '' },
     events: leaves.map(l => ({
@@ -154,7 +205,7 @@ function renderCalendar() {
       textColor: "#fff",
       extendedProps: l
     })),
-    eventContent: function(arg) {
+    eventContent: function (arg) {
       const leave = arg.event.extendedProps;
       let el = document.createElement('span');
       el.className = "event-chip";
@@ -163,8 +214,7 @@ function renderCalendar() {
       `;
       return { domNodes: [el] };
     },
-    eventClick: function(info) {
-      // Edit modal for leave
+    eventClick: function (info) {
       const leave = info.event.extendedProps;
       showModal(`
         <h3>Edit Leave</h3>
@@ -180,11 +230,11 @@ function renderCalendar() {
           <label for="edit-reason-in">Reason</label>
           <input id="edit-reason-in" type="text" value="${leave.reason || ''}" required><br>
         <button type="submit">Save</button>
-    <button type="button" class="delete-btn" id="delete-leave-btn" style="background:#fff;color:#c00;border-color:#c00;">Delete</button>
-    <button class="cancel-btn" type="button" id="cancel-btn">Cancel</button>
+        <button type="button" class="delete-btn" id="delete-leave-btn" style="background:#fff;color:#c00;border-color:#c00;">Delete</button>
+        <button class="cancel-btn" type="button" id="cancel-btn">Cancel</button>
         </form>
       `, () => {
-        document.getElementById('edit-leave-form').onsubmit = function(e) {
+        document.getElementById('edit-leave-form').onsubmit = function (e) {
           e.preventDefault();
           const name = document.getElementById('edit-name-in').value;
           const from = document.getElementById('edit-from-in').value;
@@ -199,7 +249,7 @@ function renderCalendar() {
           safeSet('leaves', leaves, 'Edit Leave', `Edited leave for ${name} (${from} to ${to}), reason: ${reason}`);
           hideModal();
         };
-        document.getElementById('delete-leave-btn').onclick = function() {
+        document.getElementById('delete-leave-btn').onclick = function () {
           if (confirm("Delete this leave?")) {
             const newLeaves = leaves.filter(l => l.id !== leave.id);
             safeSet('leaves', newLeaves, 'Delete Leave', `Deleted leave for ${leave.name} (${leave.from} to ${leave.to})`);
@@ -211,10 +261,9 @@ function renderCalendar() {
     }
   });
   calendar.render();
-  document.getElementById('today-btn').onclick = () => { calendar.today(); };
 }
 
-// --- Modal Logic ---
+// --- Modal ---
 const modalBg = document.getElementById('modal-bg');
 const modalContent = document.getElementById('modal-content');
 function showModal(html, onShow) {
@@ -226,16 +275,12 @@ function showModal(html, onShow) {
   }, 0);
   if (onShow) onShow();
 }
-function hideModal() {
-  modalBg.style.display = 'none';
-}
-modalBg.onclick = function(e) {
-  if (e.target === modalBg) hideModal();
-};
+function hideModal() { modalBg.style.display = 'none'; }
+modalBg.onclick = function (e) { if (e.target === modalBg) hideModal(); };
 
-// --- Add Leave Modal ---
-document.getElementById('add-leave-btn').onclick = function() {
-  if (members.length === 0) {
+// --- Add Leave/Member ---
+document.getElementById('add-leave-btn').onclick = function () {
+  if (!members.length) {
     alert("Please add at least one teammate first.");
     return;
   }
@@ -256,7 +301,7 @@ document.getElementById('add-leave-btn').onclick = function() {
       <button class="cancel-btn" type="button" id="cancel-btn">Cancel</button>
     </form>
   `, () => {
-    document.getElementById('leave-form').onsubmit = function(e) {
+    document.getElementById('leave-form').onsubmit = function (e) {
       e.preventDefault();
       const name = document.getElementById('name-in').value;
       const from = document.getElementById('from-in').value;
@@ -273,9 +318,7 @@ document.getElementById('add-leave-btn').onclick = function() {
     document.getElementById('cancel-btn').onclick = hideModal;
   });
 };
-
-// --- Add Member Modal ---
-document.getElementById('add-member-btn').onclick = function() {
+document.getElementById('add-member-btn').onclick = function () {
   showModal(`
     <h3>Add Teammate</h3>
     <form id="member-form" autocomplete="off">
@@ -285,7 +328,7 @@ document.getElementById('add-member-btn').onclick = function() {
       <button class="cancel-btn" type="button" id="cancel-btn">Cancel</button>
     </form>
   `, () => {
-    document.getElementById('member-form').onsubmit = function(e) {
+    document.getElementById('member-form').onsubmit = function (e) {
       e.preventDefault();
       const name = document.getElementById('member-in').value.trim();
       if (!name) return;
@@ -322,13 +365,12 @@ hariIcon.onkeydown = (e) => {
 document.getElementById('hari-close-btn').onclick = () => {
   hariChatbox.classList.add('hidden');
 };
-hariForm.onsubmit = function(e) {
+hariForm.onsubmit = function (e) {
   e.preventDefault();
   const query = hariInput.value.trim();
   if (!query) return;
   addHariMsg('user', query);
   hariInput.value = '';
-  // Find best reply from hariReplies
   let bestMatch = '';
   for (let k in hariReplies) {
     if (query.toLowerCase().includes(k.toLowerCase())) {
@@ -338,12 +380,13 @@ hariForm.onsubmit = function(e) {
   }
   if (!bestMatch) bestMatch = "I'm not sure, but an admin can add my answer! 😊";
   addHariMsg('bot', bestMatch);
-  // Log chat to Firebase
   const now = new Date();
   firebase.database().ref('hariChatLog').push({
     time: now.toISOString(),
-    query,
-    answer: bestMatch
+    messages: [
+      { role: "user", text: query },
+      { role: "bot", text: bestMatch }
+    ]
   });
 };
 function addHariMsg(by, text) {
@@ -366,21 +409,23 @@ function addHariMsg(by, text) {
   hariMsgList.scrollTop = hariMsgList.scrollHeight;
 }
 
-// --- Admin Panel ---
+// --- Admin Panel: Password, Hari Replies, Chat Log, Shifts ---
 const adminPanel = document.getElementById('admin-panel');
 const adminLoginPanel = document.getElementById('admin-login-panel');
-document.getElementById('admin-login-btn').onclick = function() {
+document.getElementById('admin-login-btn').onclick = function () {
   const pwd = document.getElementById('admin-password').value;
   if (pwd === ADMIN_PASSWORD) {
     adminLoginPanel.style.display = "none";
     adminPanel.style.display = "block";
     renderAdminRepliesTable();
     renderAdminChatLogTable();
+    renderAdminShiftAssignPanel();
   } else {
     alert("Wrong password!");
   }
 };
 
+// --- Admin Hari Replies ---
 function renderAdminRepliesTable() {
   const div = document.getElementById('admin-replies-table');
   const keys = Object.keys(hariReplies);
@@ -400,34 +445,29 @@ function renderAdminRepliesTable() {
       </td>
     </tr>`).join("")}
     </tbody></table>`;
-  // Edit
   document.querySelectorAll('.edit-reply-btn').forEach(btn => {
-    btn.onclick = function() {
+    btn.onclick = function () {
       const key = this.dataset.key;
       const newKey = div.querySelector(`.reply-key[data-key="${key}"]`).value.trim();
       const newVal = div.querySelector(`.reply-value[data-key="${key}"]`).value.trim();
       if (!newKey || !newVal) return alert("Keyword and reply required.");
-      let updated = {...hariReplies};
-      if (key !== newKey) {
-        delete updated[key];
-      }
+      let updated = { ...hariReplies };
+      if (key !== newKey) delete updated[key];
       updated[newKey] = newVal;
       safeSet('hariReplies', updated, 'Edit Hari Reply', `Edited reply: ${key} to ${newKey}`);
     };
   });
-  // Delete
   document.querySelectorAll('.delete-reply-btn').forEach(btn => {
-    btn.onclick = function() {
+    btn.onclick = function () {
       const key = this.dataset.key;
       if (!confirm("Delete this reply?")) return;
-      let updated = {...hariReplies};
+      let updated = { ...hariReplies };
       delete updated[key];
       safeSet('hariReplies', updated, 'Delete Hari Reply', `Deleted reply: ${key}`);
     };
   });
 }
-
-document.getElementById('add-reply-btn').onclick = function() {
+document.getElementById('add-reply-btn').onclick = function () {
   showModal(`
     <h3>Add New Hari Bot Reply</h3>
     <form id="add-reply-form" autocomplete="off">
@@ -439,33 +479,30 @@ document.getElementById('add-reply-btn').onclick = function() {
       <button type="button" id="cancel-new-reply" class="cancel-btn">Cancel</button>
     </form>
   `, () => {
-    document.getElementById('add-reply-form').onsubmit = function(e) {
+    document.getElementById('add-reply-form').onsubmit = function (e) {
       e.preventDefault();
       const k = document.getElementById('new-reply-key').value.trim();
       const v = document.getElementById('new-reply-value').value.trim();
       if (!k || !v) return;
-      let updated = {...hariReplies, [k]: v};
+      let updated = { ...hariReplies, [k]: v };
       safeSet('hariReplies', updated, 'Add Hari Reply', `Added reply: ${k}`);
       hideModal();
     };
     document.getElementById('cancel-new-reply').onclick = hideModal;
   });
 };
-
-// Export replies as CSV/Excel
-document.getElementById('export-replies-btn').onclick = function() {
-  const arr = Object.keys(hariReplies).map(k => ({keyword: k, reply: hariReplies[k]}));
+document.getElementById('export-replies-btn').onclick = function () {
+  const arr = Object.keys(hariReplies).map(k => ({ keyword: k, reply: hariReplies[k] }));
   const csv = Papa.unparse(arr);
-  const blob = new Blob([csv], {type:"text/csv"});
+  const blob = new Blob([csv], { type: "text/csv" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url; a.download = 'hari_replies.csv'; a.click();
 };
-// Import replies from CSV/JSON
-document.getElementById('import-replies-btn').onclick = function() {
+document.getElementById('import-replies-btn').onclick = function () {
   document.getElementById('import-replies-input').click();
 };
-document.getElementById('import-replies-input').onchange = function(ev) {
+document.getElementById('import-replies-input').onchange = function (ev) {
   const file = ev.target.files[0];
   if (!file) return;
   if (file.name.endsWith('.json')) {
@@ -493,7 +530,7 @@ document.getElementById('import-replies-input').onchange = function(ev) {
   }
 };
 
-// --- Admin Chat Log Table and Export ---
+// --- Admin Chat Log Table & Export ---
 function renderAdminChatLogTable() {
   const div = document.getElementById('admin-chatlog-table');
   if (!hariChatLog.length) {
@@ -501,25 +538,187 @@ function renderAdminChatLogTable() {
     return;
   }
   div.innerHTML = `<table><thead>
-    <tr><th>Time</th><th>Query</th><th>Answer</th></tr>
+    <tr><th>Time</th><th>User Message</th><th>Bot Reply</th></tr>
     </thead><tbody>
-    ${hariChatLog.slice().reverse().map(e => `<tr>
-      <td>${new Date(e.time).toLocaleString()}</td>
-      <td>${e.query}</td>
-      <td>${e.answer}</td>
-    </tr>`).join("")}
+    ${hariChatLog.slice().reverse().map(e => {
+      if (Array.isArray(e.messages)) {
+        const userMsg = (e.messages.find(m => m.role === "user") || {}).text || "";
+        const botMsg = (e.messages.find(m => m.role === "bot") || {}).text || "";
+        return `<tr>
+          <td>${new Date(e.time).toLocaleString()}</td>
+          <td>${userMsg}</td>
+          <td>${botMsg}</td>
+        </tr>`;
+      } else {
+        return `<tr>
+          <td>${new Date(e.time).toLocaleString()}</td>
+          <td>${e.query || ""}</td>
+          <td>${e.answer || ""}</td>
+        </tr>`;
+      }
+    }).join("")}
     </tbody></table>`;
 }
-document.getElementById('download-chatlog-btn').onclick = function() {
+document.getElementById('download-chatlog-btn').onclick = function () {
   if (!hariChatLog.length) return alert("No chat log to export.");
-  const arr = hariChatLog.map(e => ({
-    time: new Date(e.time).toLocaleString(),
-    query: e.query,
-    answer: e.answer
-  }));
+  const arr = hariChatLog.map(e => {
+    let userMsg = "", botMsg = "";
+    if (Array.isArray(e.messages)) {
+      userMsg = (e.messages.find(m => m.role === "user") || {}).text || "";
+      botMsg = (e.messages.find(m => m.role === "bot") || {}).text || "";
+    } else {
+      userMsg = e.query || "";
+      botMsg = e.answer || "";
+    }
+    return {
+      time: new Date(e.time).toLocaleString(),
+      user: userMsg,
+      bot: botMsg,
+    };
+  });
   const csv = Papa.unparse(arr);
-  const blob = new Blob([csv], {type:"text/csv"});
+  const blob = new Blob([csv], { type: "text/csv" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url; a.download = 'hari_chat_log.csv'; a.click();
+};
+
+// --- Shifts: View (Shift Management Tab) ---
+function getSelectedMonthInput(inputId, fallbackMonthStr) {
+  const sel = document.getElementById(inputId);
+  let val = sel ? sel.value : "";
+  if (!val && fallbackMonthStr) return fallbackMonthStr;
+  if (!val) {
+    const now = new Date();
+    val = now.toISOString().slice(0, 7);
+  }
+  return val;
+}
+function renderShiftDisplay() {
+  const panel = document.getElementById('shift-display-panel');
+  if (!panel) return;
+  const monthStr = getSelectedMonthInput("shift-month-select");
+  document.getElementById("shift-month-select").value = monthStr;
+
+  const appSel = document.getElementById("shift-app-filter");
+  const appFilter = appSel ? appSel.value : "All";
+
+  if (!members.length) {
+    panel.innerHTML = "<em>No teammates yet.</em>";
+    return;
+  }
+  const shiftMap = (shifts && shifts[monthStr]) || {};
+  // Filtering and sorting
+  let filtered = members
+    .map(name => {
+      let shiftRec = shiftMap[name];
+      return { name, shiftRec };
+    })
+    .filter(row => {
+      if (!row.shiftRec) return appFilter === "All";
+      if (appFilter === "All") return true;
+      return row.shiftRec.application === appFilter;
+    })
+    .sort((a, b) => {
+      let aOrder = a.shiftRec ? (SHIFT_TYPES.find(s => s.key === a.shiftRec.type) || { order: 100 }).order : 99;
+      let bOrder = b.shiftRec ? (SHIFT_TYPES.find(s => s.key === b.shiftRec.type) || { order: 100 }).order : 99;
+      return aOrder - bOrder || a.name.localeCompare(b.name);
+    });
+
+  panel.innerHTML = filtered.map(({ name, shiftRec }) => {
+    if (!shiftRec) {
+      return `<div class="shift-card"><div class="avatar"><span class="avatar-initials">${getInitials(name)}</span></div>
+      <div class="shift-info">
+        <span class="shift-label">${name}</span>
+        <div class="shift-row"><span class="shift-type" style="color:#c00;">No shift assigned</span></div>
+      </div></div>`;
+    }
+    const shiftType = SHIFT_TYPES.find(s => s.key === shiftRec.type) || {};
+    const emoji = shiftType.emoji || "❓";
+    const timing = shiftType.timing || "";
+    let mode = shiftRec.wfh ? `<span class="shift-emoji">🏠</span> <span class="shift-wfh">WFH</span>` : `<span class="shift-emoji">🏢</span> <span class="shift-wfo">WFO</span>`;
+    let appLabel = shiftRec.application ? `<b>App:</b> ${shiftRec.application}` : "";
+    return `<div class="shift-card">
+      <div class="avatar"><span class="avatar-initials">${getInitials(name)}</span></div>
+      <div class="shift-info">
+        <span class="shift-label">${name}</span>
+        <div class="shift-row">
+          <span class="shift-emoji">${emoji}</span>
+          <span class="shift-type">${shiftRec.type}</span>
+          <span class="shift-timing">${timing}</span>
+          ${mode}
+          <span style="margin-left:12px;">${appLabel}</span>
+        </div>
+      </div>
+    </div>`;
+  }).join("");
+}
+document.getElementById("shift-month-select").onchange = renderShiftDisplay;
+document.getElementById("shift-app-filter").onchange = renderShiftDisplay;
+
+// --- Shifts: Admin Assign/Edit (Save All in 1 click) ---
+function renderAdminShiftAssignPanel() {
+  const panel = document.getElementById('admin-shift-assign-panel');
+  if (!panel) return;
+  const monthStr = getSelectedMonthInput("admin-shift-month-select");
+  document.getElementById("admin-shift-month-select").value = monthStr;
+  const shiftMap = (shifts && shifts[monthStr]) || {};
+
+  if (!members.length) {
+    panel.innerHTML = "<em>No teammates yet.</em>";
+    return;
+  }
+  panel.innerHTML = `<table>
+    <thead>
+      <tr><th>Name</th><th>Shift</th><th>WFH/WFO</th><th>Application</th></tr>
+    </thead>
+    <tbody>
+    ${members.map(name => {
+      let shiftRec = shiftMap[name] || { type: "", wfh: false, application: "" };
+      return `<tr data-name="${name}">
+        <td>${name}</td>
+        <td>
+          <select class="shift-edit-select">
+            <option value="">-- Select --</option>
+            ${SHIFT_TYPES.map(st => `<option value="${st.key}" ${shiftRec.type === st.key ? "selected" : ""}>${st.label}</option>`).join("")}
+          </select>
+        </td>
+        <td>
+          <select class="shift-wfh-select">
+            <option value="false" ${!shiftRec.wfh ? "selected" : ""}>🏢 WFO</option>
+            <option value="true" ${shiftRec.wfh ? "selected" : ""}>🏠 WFH</option>
+          </select>
+        </td>
+        <td>
+          <select class="shift-app-select">
+            <option value="">-- Select --</option>
+            ${APPLICATIONS.map(app => `<option value="${app}" ${shiftRec.application === app ? "selected" : ""}>${app}</option>`).join("")}
+          </select>
+        </td>
+      </tr>`;
+    }).join("")}
+    </tbody></table>`;
+}
+document.getElementById("admin-shift-month-select").onchange = renderAdminShiftAssignPanel;
+
+document.getElementById("admin-shift-save-btn").onclick = function () {
+  const monthStr = getSelectedMonthInput("admin-shift-month-select");
+  if (!shifts[monthStr]) shifts[monthStr] = {};
+  const panel = document.getElementById('admin-shift-assign-panel');
+  Array.from(panel.querySelectorAll("tr[data-name]")).forEach(tr => {
+    const name = tr.getAttribute("data-name");
+    const shiftSel = tr.querySelector(".shift-edit-select");
+    const wfhSel = tr.querySelector(".shift-wfh-select");
+    const appSel = tr.querySelector(".shift-app-select");
+    const type = shiftSel.value;
+    const wfh = wfhSel.value === "true";
+    const application = appSel.value;
+    if (type && application) {
+      shifts[monthStr][name] = { type, wfh, application };
+    } else {
+      delete shifts[monthStr][name]; // Remove if incomplete
+    }
+  });
+  safeSet('shifts', shifts, 'Assign Shifts (Bulk)', `Bulk save of shifts for ${monthStr}`);
+  alert("Shifts saved!");
 };
