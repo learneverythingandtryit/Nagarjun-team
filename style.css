@@ -6,7 +6,7 @@ body {
   padding: 0;
 }
 main {
-  max-width: 700px;
+  max-width: 800px;
   margin: 24px auto 0 auto;
   background: #fff;
   border-radius: 12px;
@@ -45,15 +45,6 @@ nav.main-tabs {
 .tab-content.active {
   display: block;
 }
-#home-tab {
-  padding-top: 1em;
-  min-height: 300px;
-}
-#home-tab ul {
-  margin-top: 1em;
-  margin-left: 1em;
-  font-size: 1.1em;
-}
 h1 {
   font-size: 1.45em;
   text-align: center;
@@ -64,7 +55,7 @@ h1 {
   border-bottom: 2px solid #222;
   padding-bottom: 0.55em;
 }
-.calendar-actions {
+.calendar-actions, .shift-month-actions, .shift-filters {
   text-align: center;
   margin-bottom: 1.2em;
 }
@@ -83,10 +74,6 @@ button:hover {
   background: #111;
   color: #fff;
   border-color: #111;
-}
-.audit-tab-btn {
-  float: right;
-  margin-right: 0;
 }
 #unity-group-panel {
   text-align: center;
@@ -165,19 +152,20 @@ button:hover {
   max-width: 120px;
 }
 #calendar {
-  min-height: 420px;
-  height: 470px;
   background: #fff;
   border-radius: 8px;
-  padding: 9px;
-  box-shadow: none;
+  height:auto;
+  padding: 5px;
   margin-bottom: 40px;
   overflow: visible;
 }
 .fc .fc-toolbar-title {
   color: #000;
   font-weight: 600;
-  font-size: 1.1em;
+  font-size: 3em;
+}
+.fc-daygrid-day-frame {
+  min-height: 80px; /* Adjust as needed */
 }
 .fc .fc-daygrid-day-number {
   color: #111;
@@ -208,18 +196,14 @@ button:hover {
   max-width: 85px;
   display: inline-block;
 }
-.event-chip .delete-btn {
-  display: none !important;
-}
-.event-chip .reason-tooltip {
-  cursor: pointer;
-}
 #hari-bot-widget {
   position: fixed;
   right: 30px;
   bottom: 30px;
   z-index: 2000;
 }
+
+/* SIMPLIFY HARI BOT HEADER - REMOVE ALL SPECIAL STYLE */
 #hari-icon {
   font-size: 6em;
   cursor: pointer;
@@ -236,18 +220,17 @@ button:hover {
   margin: 0;
 }
 #hari-chatbox {
-  position: right;
   right: 30px;
   bottom: 90px;
   background: #fff;
   color: #111;
-  border-radius: 14px;
+  border-radius: 4px;
   width: 250px;
   min-height: 300px;
   max-height: 350px;
   box-shadow: 0 2px 16px #0001;
-  border: 2px solid #000;
-  font-size: 0.92em;
+  border: 1px solid #000;
+  font-size: 1em;
   display: flex;
   flex-direction: column;
   z-index: 3000;
@@ -264,7 +247,7 @@ button:hover {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 1.02em;
+  font-size: 1em;
   font-weight: 700;
   border-bottom: 2px solid #000;
   position: relative;
@@ -307,7 +290,7 @@ button:hover {
   max-height: 200px;
   overflow-y: auto;
   background: #fff;
-  font-size: 0.94em;
+  font-size: 0.8em;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -320,11 +303,13 @@ button:hover {
   margin-bottom: 0;
   width: auto;
 }
-.hari-msg.user {
+.hari-msg.user,
+.hari-msg.bot {
   flex-direction: row;
   justify-content: flex-start;
   align-self: flex-start;
 }
+
 .hari-msg.bot {
   flex-direction: row-reverse;
   justify-content: flex-end;
@@ -340,6 +325,8 @@ button:hover {
   margin: 0;
   border: 1.2px solid #000;
   line-height: 1.4;
+  background: #f6f6f6;
+  color: #111;
   display: flex;
   align-items: flex-end;
   min-height: 24px;
@@ -358,13 +345,13 @@ button:hover {
   background: #111;
   color: #fff;
   border-bottom-right-radius: 6px;
-  margin-right: 2px;
+  margin-right: 8px;
   margin-left: 0;
   align-self: flex-end;
   justify-content: flex-end;
 }
 .hari-profile {
-  font-size: 1.05em;
+  font-size: 1.5em;
   width: 22px;
   height: 22px;
   display: flex;
@@ -372,20 +359,9 @@ button:hover {
   justify-content: center;
   border-radius: 50%;
   background: #fff;
-  border: 1.5px solid #000;
+  border: 1.5px;
   flex-shrink: 0;
-}
-.hari-msg.bot .hari-profile {
-  background: #111;
-  color: #fff;
-  margin-left: 5px;
-  margin-right: 0;
-}
-.hari-msg.user .hari-profile {
-  background: #fff;
-  color: #111;
   margin-right: 5px;
-  margin-left: 0;
 }
 #hari-chat-form {
   display: flex;
@@ -400,16 +376,16 @@ button:hover {
   font-size: 0.94em;
   padding: 6px 8px;
   border-radius: 7px;
-  border: 2px solid #000;
+  border: 2px solid #ccc;
   color: #111;
   background: #fff;
   min-width: 0;
 }
 #hari-chat-form button {
-  font-size: 1em;
+  font-size: 0.9em;
   padding: 7px 12px;
-  border-radius: 7px;
-  border: 2px solid #111;
+  border-radius: 20px;
+  border: 1px solid #111;
   background: #000;
   color: #fff;
   cursor: pointer;
@@ -417,8 +393,8 @@ button:hover {
   min-width: 48px;
 }
 #hari-chat-form button:hover {
-  background: #444;
-  border-color: #000;
+  background: #000;
+  color: #fff;
 }
 #audit-log-table {
   margin: 1em 0;
@@ -439,6 +415,101 @@ button:hover {
   background: #000;
   color: #fff;
   font-weight: bold;
+}
+#shift-display-panel {
+  margin-top: 1.2em;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.shift-card {
+  background: #f9f9f9;
+  border: 2px solid #111;
+  border-radius: 12px;
+  padding: 1em 1.2em;
+  margin-bottom: 5px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  min-height: 60px;
+  box-shadow: 0 2px 8px #0001;
+}
+.shift-card .avatar-initials {
+  font-size: 0.4em;
+}
+.shift-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.shift-label {
+  font-size: 1.04em;
+  font-weight: bold;
+  margin-bottom: 0.2em;
+}
+.shift-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 1.02em;
+}
+.shift-emoji {
+  font-size: 1.4em;
+  margin-right: 5px;
+}
+.shift-type {
+  font-weight: bold;
+  margin-right: 3px;
+}
+.shift-timing {
+  font-style: italic;
+  color: #333;
+}
+.shift-wfh {
+  color: #1a7f37;
+  font-weight: 600;
+}
+.shift-wfo {
+  color: #0066cc;
+  font-weight: 600;
+}
+#admin-shift-assign-panel table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  margin-top: 1.2em;
+  margin-bottom: 1em;
+}
+#admin-shift-assign-panel th, #admin-shift-assign-panel td {
+  padding: 6px 10px;
+  border: 1.2px solid #bbb;
+  font-size: 1em;
+}
+#admin-shift-assign-panel th {
+  background: #222;
+  color: #fff;
+  font-weight: bold;
+}
+.shift-edit-select, .shift-wfh-select, .shift-app-select {
+  font-size: 1em;
+  padding: 3px 8px;
+  border-radius: 5px;
+  border: 1px solid #888;
+  background: #f6f6f6;
+}
+.shift-save-btn {
+  background: #0a0;
+  color: #fff;
+  border-color: #080;
+  padding: 7px 18px;
+  font-size: 1em;
+  border-radius: 8px;
+  margin-left: 0;
+  margin-top: 10px;
+}
+.shift-save-btn:hover {
+  background: #090;
 }
 .modal-bg {
   display: none;
@@ -483,8 +554,10 @@ input, select, textarea {
   background: #fff;
   font-weight: 400;
 }
-.modal-content input[type="text"]:last-of-type {
-  margin-bottom: 30px;
+input[type="month"] {
+  width: 180px;
+  min-width: 120px;
+  padding: 4px 8px;
 }
 input:focus, select:focus, textarea:focus {
   outline: 2px solid #000;
